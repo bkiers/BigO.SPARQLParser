@@ -1,5 +1,6 @@
 using System.Text;
 using Antlr4.Runtime;
+using BigO.SPARQLParser.Parser;
 
 namespace BigO.SPARQLParser.Extensions;
 
@@ -24,13 +25,20 @@ public static class ListExtensions
         }
     }
 
-    public static string ToQuery<T>(this IEnumerable<T> tokens) where T : IToken
+    public static string ToQuery<T>(this IEnumerable<T> tokens, bool skipComments = true) where T : IToken
     {
         var builder = new StringBuilder();
 
         foreach (var token in tokens)
         {
-            // TODO Eof explanation
+            if (skipComments && token.Type == SPARQLLexer.COMMENT)
+            {
+                continue;
+            }
+
+            // Just skip any end-of-file tokens, do not break out of the loop! It can happen that
+            // more than 1 EOF token exists: in case SPARQL code is inserted, the extra pieces of
+            // code will all have their own EOF token.
             builder.Append(token.Type == Lexer.Eof ? string.Empty : token.Text);
         }
         
