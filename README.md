@@ -18,14 +18,15 @@ using BigO.SPARQLParser.Parser;
 var lexer = new SPARQLLexer(CharStreams.fromString(sparqlQuery));
 var parser = new SPARQLParser(new CommonTokenStream(lexer));
 var parseTree = parser.queryUnit();
+// ...
 ```
 
-The `parseTree` can now be used to traversed using 
+The `parseTree` can now be used to be traversed using 
 [ANTLR-listeners](https://github.com/antlr/antlr4/blob/master/doc/listeners.md) or 
 [-visitors](https://tomassetti.me/listeners-and-visitors/).
 
 This package is nothing more than a wrapper around the ANTLR classes mentioned above, accessible
-through the [`SPARQLQuery`]() class.
+through the [`SPARQLQuery`](BigO.SPARQLParser/SPARQLQuery.cs) class.
 
 Validating SPARQL source can simply be done by creating a `SPARQLQuery`:
 
@@ -104,4 +105,4 @@ and use these child parse trees (contexts) in custom listeners or visitors.
 
 The uppercase token types, like `CBRACE`, are mapped to the lexer rules (see SPARQLLexer.g4).
 
-For more examples, checkout the file [`SPARQLQueryTests.cs`]().
+For more examples, checkout the file [`SPARQLQueryTests.cs`](BigO.SPARQLParser.Tests/SPARQLQueryTests.cs).
