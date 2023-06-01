@@ -42,16 +42,6 @@ public interface ISPARQLParserListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitQueryUnit([NotNull] SPARQLParser.QueryUnitContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="SPARQLParser.query"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterQuery([NotNull] SPARQLParser.QueryContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="SPARQLParser.query"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitQuery([NotNull] SPARQLParser.QueryContext context);
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="SPARQLParser.updateUnit"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -61,6 +51,16 @@ public interface ISPARQLParserListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitUpdateUnit([NotNull] SPARQLParser.UpdateUnitContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="SPARQLParser.query"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterQuery([NotNull] SPARQLParser.QueryContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="SPARQLParser.query"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitQuery([NotNull] SPARQLParser.QueryContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="SPARQLParser.prologue"/>.
 	/// </summary>

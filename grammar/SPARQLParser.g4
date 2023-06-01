@@ -5,14 +5,21 @@ options {
   tokenVocab=SPARQLLexer;
 }
 
+@parser::members {
+  public static IEnumerable<Type> ParserRules
+      => typeof(SPARQLParser).Assembly
+        .GetExportedTypes()
+        .Where(t => typeof(ParserRuleContext).IsAssignableFrom(t));
+}
+
 ///  [1]    QueryUnit : Query
 queryUnit : query EOF;
 
+///  [3]    UpdateUnit : Update
+updateUnit : update EOF;
+
 ///  [2]    Query : Prologue ( SelectQuery | ConstructQuery | DescribeQuery | AskQuery ) ValuesClause
 query : prologue ( selectQuery | constructQuery | describeQuery | askQuery ) valuesClause;
-
-///  [3]    UpdateUnit : Update
-updateUnit : update;
 
 ///  [4]    Prologue : ( BaseDecl | PrefixDecl )*
 prologue : ( baseDecl | prefixDecl )*;

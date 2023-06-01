@@ -194,9 +194,6 @@ DECIMAL_NEGATIVE : '-' DECIMAL;
 /// [154]    DOUBLE_NEGATIVE : '-' DOUBLE
 DOUBLE_NEGATIVE : '-' DOUBLE;
 
-/// [155]    EXPONENT : [eE] [+-]? [0-9]+
-fragment EXPONENT : [eE] [+-]? [0-9]+;
-
 /// [156]    STRING_LITERAL1 : "'" ( ([^#x27#x5C#xA#xD]) | ECHAR )* "'"
 STRING_LITERAL1 : '\'' ( ~[\u0027\u005C\u000A\u000D] | ECHAR )* '\'';
 
@@ -214,6 +211,12 @@ NIL : '(' WS* ')';
 
 /// [163]    ANON : '[' WS* ']'
 ANON : '[' WS* ']';
+
+// Fall through rule
+UNEXPECTED_CHAR : . ;
+
+/// [155]    EXPONENT : [eE] [+-]? [0-9]+
+fragment EXPONENT : [eE] [+-]? [0-9]+;
 
 /// [160]    ECHAR : '\' [tbnrf\"']
 fragment ECHAR : '\\' [tbnrf"'];

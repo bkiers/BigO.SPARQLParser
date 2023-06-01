@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Name" Description="Description" ToolsVersion="15.0">
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzer">
+    <Rule Id="CS1591" Action="None" /><!-- Missing XML comment for publicly visible type or member -->
+    <Rule Id="SA0001" Action="None" /><!-- XML comment analysis is disabled due to project configuration -->
+    <Rule Id="SA1101" Action="None" /><!-- Prefix local calls with this -->
+    <Rule Id="SA1108" Action="None" /><!-- Block statements should not contain embedded comments -->
+    <Rule Id="SA1117" Action="None" /><!-- The parameters should all be placed on the same line or each parameter should be placed on its own line. -->
+    <Rule Id="SA1127" Action="None" /><!-- Generic type constraints should be on their own line -->
+    <Rule Id="SA1129" Action="None" /><!-- Do not use default value type constructor -->
+    <Rule Id="SA1200" Action="None" /><!-- Using directive should appear within a namespace declaration -->
+    <Rule Id="SA1202" Action="None" /><!-- 'public' members should come before 'private' members -->
+    <Rule Id="SA1204" Action="None" /><!-- Static members should appear before non-static members -->
+    <Rule Id="SA1206" Action="None" /><!-- The 'required' modifier should appear before 'public'; disabled because of https://github.com/DotNetAnalyzers/StyleCopAnalyzers/pull/3535, which causes "public required" to be flagged as incorrect -->
+    <Rule Id="SA1306" Action="None" /><!-- Field 'AttemptsCacheDuration' should begin with lower-case letter -->
+    <Rule Id="SA1309" Action="None" /><!-- Field '_next' should not begin with an underscore -->
+    <Rule Id="SA1310" Action="None" /><!-- Field 'KEY_NOT_EXIST' should not contain an underscore -->
+    <Rule Id="SA1316" Action="None" /><!-- Tuple element names should use correct casing -->
+    <Rule Id="SA1401" Action="None" /><!-- Field should be private -->
+    <Rule Id="SA1402" Action="None" /><!-- File may only contain a single type -->
+    <Rule Id="SA1413" Action="None" /><!-- Use trailing comma in multi-line initializers -->
+    <Rule Id="SA1501" Action="None" /><!-- Statement should not be on a single line -->
+    <Rule Id="SA1503" Action="None" /><!-- Braces should not be omitted -->
+    <Rule Id="SA1512" Action="None" /><!-- Single-line comments should not be followed by blank line -->
+    <Rule Id="SA1513" Action="None" /><!-- Closing brace should be followed by blank line -->
+    <Rule Id="SA1515" Action="None" /><!-- Single-line comment should be preceded by blank line -->
+    <Rule Id="SA1516" Action="None" /><!-- Elements should be separated by blank line -->
+    <Rule Id="SA1600" Action="None" /><!-- Elements should be documented -->
+    <Rule Id="SA1602" Action="None" /><!-- Enumeration items should be documented -->
+    <Rule Id="SA1611" Action="None" /><!-- The documentation for parameter 'request' is missing -->
+    <Rule Id="SA1614" Action="None" /><!-- Element parameter documentation should have text -->
+    <Rule Id="SA1615" Action="None" /><!-- Element return value should be documented -->
+    <Rule Id="SA1616" Action="None" /><!-- Element return value documentation should have text -->
+    <Rule Id="SA1618" Action="None" /><!-- The documentation for type parameter 'x' is missing -->
+    <Rule Id="SA1623" Action="None" /><!-- The property's documentation summary text should begin with: 'Gets or sets' -->
+    <Rule Id="SA1633" Action="None" /><!-- The file header is missing or not located at the top of the file. -->
+    <Rule Id="SA1642" Action="None" /><!-- Constructor summary documentation should begin with standard text -->
+    <Rule Id="SA1600" Action="None" /><!-- Elements shoud be documented -->
+    <Rule Id="CS3021" Action="None" /><!-- Class does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute -->
+    <Rule Id="SA1314" Action="None" /><!-- Type parameter names should begin with T -->
+  </Rules>
+</RuleSet>

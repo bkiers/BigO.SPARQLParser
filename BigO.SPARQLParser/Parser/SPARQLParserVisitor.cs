@@ -39,17 +39,17 @@ public interface ISPARQLParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitQueryUnit([NotNull] SPARQLParser.QueryUnitContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="SPARQLParser.query"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitQuery([NotNull] SPARQLParser.QueryContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="SPARQLParser.updateUnit"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitUpdateUnit([NotNull] SPARQLParser.UpdateUnitContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="SPARQLParser.query"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQuery([NotNull] SPARQLParser.QueryContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="SPARQLParser.prologue"/>.
 	/// </summary>
