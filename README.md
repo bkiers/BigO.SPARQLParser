@@ -5,7 +5,9 @@ SPARQL queries.
 
 ### NuGet
 
-TODO
+```xml
+<PackageReference Include="BigO.SPARQLParser" Version="1.0.0" />
+```
 
 ### Usage
 
@@ -106,3 +108,8 @@ and use these child parse trees (contexts) in custom listeners or visitors.
 The uppercase token types, like `CBRACE`, are mapped to the lexer rules (see SPARQLLexer.g4).
 
 For more examples, checkout the file [`SPARQLQueryTests.cs`](BigO.SPARQLParser.Tests/SPARQLQueryTests.cs).
+
+### SPARQL Specification
+
+The parser is generated from [a grammar](grammar/) based on the official SPARQL specification
+located at: https://www.w3.org/TR/sparql11-query/#grammar
