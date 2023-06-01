@@ -5,13 +5,6 @@ options {
   tokenVocab=SPARQLLexer;
 }
 
-@parser::members {
-  public static IEnumerable<Type> ParserRules
-      => typeof(SPARQLParser).Assembly
-        .GetExportedTypes()
-        .Where(t => typeof(ParserRuleContext).IsAssignableFrom(t));
-}
-
 ///  [1]    QueryUnit : Query
 queryUnit : query EOF;
 

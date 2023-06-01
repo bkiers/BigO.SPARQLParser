@@ -200,12 +200,6 @@ public partial class SPARQLParser : Parser {
 		}
 	}
 
-
-	  public static IEnumerable<Type> ParserRules
-	      => typeof(SPARQLParser).Assembly
-	        .GetExportedTypes()
-	        .Where(t => typeof(ParserRuleContext).IsAssignableFrom(t));
-
 		public SPARQLParser(ITokenStream input) : this(input, Console.Out, Console.Error) { }
 
 		public SPARQLParser(ITokenStream input, TextWriter output, TextWriter errorOutput)
