@@ -27,10 +27,4 @@ public class SPARQLQueryTests
 
     Assert.Throws<ParseException>(() => new SPARQLQuery<ExpressionContext>(queryString));
   }
-
-  [Fact]
-  public void Failing()
-  {
-    Assert.True(1 == 2);
-  }
 }
