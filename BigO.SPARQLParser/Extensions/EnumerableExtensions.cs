@@ -9,19 +9,20 @@ internal static class EnumerableExtensions
   /// <summary>
   /// Inserts a list of tokens before or after a certain token.
   /// </summary>
-  public static IEnumerable<IToken> InsertQuery(this IEnumerable<IToken> tokens, string query, IToken token, bool before)
+  public static IEnumerable<IToken> InsertTokens(this IEnumerable<IToken> tokens, IEnumerable<IToken> extraTokens,
+    IToken token, bool before)
   {
     var newTokens = new List<IToken>(tokens);
     var index = newTokens.IndexOfToken(token);
 
     if (index < 0)
     {
-      throw new ArgumentException($"Could not find token '{token}' in query '{query}'");
+      throw new ArgumentException($"Could not find token '{token}'");
     }
 
     var indexOffset = before ? 0 : 1;
 
-    foreach (var (newToken, n) in query.Tokens().Select((t, i) => (t, i)))
+    foreach (var (newToken, n) in extraTokens.Select((t, i) => (t, i)))
     {
       newTokens.Insert(index + indexOffset + n, newToken);
     }
@@ -50,7 +51,7 @@ internal static class EnumerableExtensions
       builder.Append(token.Type == Lexer.Eof ? string.Empty : token.Text);
     }
 
-    return builder.ToString();
+    return builder.ToString().Trim();
   }
 
   /// <summary>
