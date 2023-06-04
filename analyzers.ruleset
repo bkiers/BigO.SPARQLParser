@@ -38,5 +38,6 @@
     <Rule Id="SA1600" Action="None" /><!-- Elements shoud be documented -->
     <Rule Id="CS3021" Action="None" /><!-- Class does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute -->
     <Rule Id="SA1314" Action="None" /><!-- Type parameter names should begin with T -->
+    <Rule Id="SA1005" Action="None" /><!-- Single line comment should begin with a space -->
   </Rules>
 </RuleSet>

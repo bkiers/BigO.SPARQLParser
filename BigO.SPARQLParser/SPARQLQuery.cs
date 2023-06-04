@@ -1,5 +1,6 @@
 namespace BigO.SPARQLParser;
 
+using System.Collections.ObjectModel;
 using Antlr4.Runtime;
 using BigO.SPARQLParser.Exceptions;
 using BigO.SPARQLParser.Extensions;
@@ -8,7 +9,6 @@ using BigO.SPARQLParser.Parser;
 public class SPARQLQuery<C>
   where C : ParserRuleContext
 {
-  private readonly C context;
   private readonly IList<IToken> tokens;
 
   /// <summary>
@@ -20,60 +20,65 @@ public class SPARQLQuery<C>
   /// </summary>
   public SPARQLQuery(string query)
   {
-    var originalQuery = query.Trim();
-    this.context = originalQuery.ParseAs<C>();
-    this.tokens = originalQuery.Tokens();
+    this.Context = query.Trim().ParseAs<C>();
+    this.tokens = query.Trim().Tokenize();
 
-    if (!this.tokens.AreEqualTokens(this.context.Tokens()))
+    if (!this.tokens.AreEqualTokens(this.Context.AllTokens()))
     {
-      throw new ParseException($"'{query}' is not completely parsed by '{typeof(C).MethodName()}'");
+      throw new ParseException($"'{query.Trim()}' is not completely parsed by '{typeof(C).MethodName()}'");
     }
   }
 
   /// <summary>
+  /// The parser context (parse tree)
+  /// </summary>
+  public C Context { get; }
+
+  /// <summary>
   /// Returns a list of possible `C` parser rule contexts that can be used as generic `SPARQLQuery` parameter
   /// </summary>
-  public static IEnumerable<Type> ParserRules
+  public IEnumerable<Type> ParserRules
     => typeof(SPARQLParser).Assembly
       .GetExportedTypes()
       .Where(t => typeof(ParserRuleContext).IsAssignableFrom(t));
 
   /// <summary>
+  /// A shallow copy of the tokens
+  /// </summary>
+  public IReadOnlyList<IToken> Tokens(bool includeHiddenTokens = true)
+    => new ReadOnlyCollection<IToken>(includeHiddenTokens
+      ? this.tokens
+      : this.tokens.Where(t => t.Channel != Lexer.Hidden).ToList());
+
+  /// <summary>
+  /// TODO
+  /// </summary>
+  public IReadOnlyList<IToken> FindTokens(int tokenType, string? text = null,
+    StringComparison stringComparison = StringComparison.Ordinal) =>
+    new ReadOnlyCollection<IToken>(this.Context.FindTokens(tokenType, text, stringComparison).ToList());
+
+  /// <summary>
   /// Inserts a given node `N` query in this current node `C` query-object and returns the result as a new
   /// `R` query-object
   /// </summary>
-  public SPARQLQuery<R> InsertQuery<N, R>(string query, IToken beforeToken, bool before)
-    where N : ParserRuleContext // The type of the context `query` should be parsed as
-    where R : ParserRuleContext // The type of the context to be returned (what `C` and `N` are together)
+  public SPARQLQuery<R> InsertQuery<R>(string query, IToken beforeToken, bool before)
+    where R : ParserRuleContext // The type of the context to be returned
   {
-    // We're not doing anything with the result of this ParseAs<N>() call, but this makes sure the `query`
-    // can really be parsed as an `N` parser rule context (if not, an exception is thrown)
-    query.ParseAs<N>();
-
-    var newTokens = this.tokens.InsertQuery(query, beforeToken, before);
+    var newTokens = this.tokens.InsertTokens(query.Tokenize(), beforeToken, before);
     var completeQuery = newTokens.ToQueryString(skipComments: false);
 
+    // This will throw an exception if the newly formed tokens is not a valid `R` parser context
     return new SPARQLQuery<R>(completeQuery);
   }
 
   /// <summary>
   /// Return all parse tree nodes of this parser rule context
   /// </summary>
-  public IEnumerable<N> Nodes<N>()
-    where N : ParserRuleContext
-    => this.context.Nodes<N>();
+  public IEnumerable<N> FindNodes<N>()
+    where N : ParserRuleContext => this.Context.Nodes<N>();
 
   /// <summary>
   /// Return this parser rule context
   /// </summary>
-  public string ToQueryString<N>(bool skipComments = true)
-    where N : ParserRuleContext
-  {
-    var query = this.tokens.ToQueryString(skipComments);
-
-    // Make sure the `query` we're about to return is a valid `N` parser rule context
-    query.ParseAs<N>();
-
-    return query;
-  }
+  public string ToQueryString(bool skipComments = true) => this.tokens.ToQueryString(skipComments);
 }

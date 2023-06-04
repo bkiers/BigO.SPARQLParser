@@ -10,7 +10,7 @@ internal static class StringExtensions
   /// <summary>
   /// Create a list of tokens given a `sparqlQuery` string
   /// </summary>
-  public static IList<IToken> Tokens(this string sparqlQuery)
+  public static IList<IToken> Tokenize(this string sparqlQuery)
   {
     var lexer = new SPARQLLexer(CharStreams.fromString(sparqlQuery));
     var tokenStream = new CommonTokenStream(lexer);

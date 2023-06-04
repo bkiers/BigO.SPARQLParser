@@ -4,17 +4,20 @@ using BigO.SPARQLParser.Extensions;
 using Xunit;
 using static BigO.SPARQLParser.Parser.SPARQLParser;
 
-public class TypeExtensionsTests
+public static class TypeExtensionsTests
 {
-  [Fact]
-  public void MethodName_WrongType_ThrowsException()
+  public class MethodNameTests
   {
-    Assert.Throws<ArgumentException>(() => typeof(string).MethodName());
-  }
+    [Fact]
+    public void WrongType_ThrowsException()
+    {
+      Assert.Throws<ArgumentException>(() => typeof(string).MethodName());
+    }
 
-  [Fact]
-  public void MethodName_CorrectType_ReturnsParserRule()
-  {
-    Assert.Equal("queryUnit", typeof(QueryUnitContext).MethodName());
+    [Fact]
+    public void CorrectType_ReturnsParserRule()
+    {
+      Assert.Equal("queryUnit", typeof(QueryUnitContext).MethodName());
+    }
   }
 }

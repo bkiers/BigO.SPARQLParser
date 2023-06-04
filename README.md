@@ -6,7 +6,7 @@ SPARQL queries.
 ### NuGet
 
 ```xml
-<PackageReference Include="BigO.SPARQLParser" Version="1.0.0" />
+<PackageReference Include="BigO.SPARQLParser" Version="1.0.1" />
 ```
 
 ### Usage
@@ -35,7 +35,8 @@ Validating SPARQL source can simply be done by creating a `SPARQLQuery`:
 ```csharp
 const string queryString = @"
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-  SELECT ?name WHERE {
+  SELECT ?name 
+  WHERE {
     ?person foaf:name ?name.
   }";
 
@@ -74,9 +75,9 @@ var rewritten = query
 Console.WriteLine(rewritten);
 ```
 
-All ANTLR generated classes mentioned in the example code, `...Context` are mapped to 1-to-1 to ANTLR
-parser rules. For example, the context `WhereClauseContext` is mapped to the `whereClause` parser rule, which 
-looks like this:
+All ANTLR generated classes in the example code (the `...Context` classes) are mapped 1-to-1 
+to ANTLR parser rules. For example, the context `WhereClauseContext` is mapped to the `whereClause` 
+parser rule, which looks like this:
 
 ```antlrv4
 // See SPARQLParser.g4
@@ -98,9 +99,11 @@ So if you have a reference to the parse tree (context) `WhereClauseContext`, you
 like this:
 
 ```cs
+// .Nodes<WhereClauseContext>() is an extension method from this package
 var whereClause = query.Nodes<WhereClauseContext>().First();
 
-var subSelect = whereClause.groupGraphPattern().subSelect(); // watch out, can be null!
+// The methods `groupGraphPattern()` and `subSelect()` are created by ANTLR
+var subSelect = whereClause.groupGraphPattern().subSelect(); // watch out, `subSelect()` can return null!
 ```
 
 and use these child parse trees (contexts) in custom listeners or visitors.

@@ -1,7 +1,7 @@
+namespace BigO.SPARQLParser.Extensions;
+
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
-
-namespace BigO.SPARQLParser.Extensions;
 
 internal static class TypeExtensions
 {
