@@ -23,7 +23,7 @@ internal static class ParserRuleContextExtensions
   /// <summary>
   /// Returns a list of all tokens from a given `context`, without the tokens from the `Hidden` channel!
   /// </summary>
-  public static IEnumerable<IToken> Tokens<C>(this C context)
+  public static IEnumerable<IToken> AllTokens<C>(this C context)
     where C : ParserRuleContext
   {
     var listener = new AllTokensCollectorListener();
