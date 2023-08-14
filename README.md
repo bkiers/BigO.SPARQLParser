@@ -6,7 +6,7 @@ SPARQL queries.
 ### NuGet
 
 ```xml
-<PackageReference Include="BigO.SPARQLParser" Version="1.0.1" />
+<PackageReference Include="BigO.SPARQLParser" Version="1.0.3" />
 ```
 
 ### Usage
