@@ -1,3 +1,5 @@
+using Antlr4.Runtime.Tree;
+
 namespace BigO.SPARQLParser.Extensions;
 
 using Antlr4.Runtime;
@@ -75,5 +77,27 @@ internal static class StringExtensions
 
       throw new ParseException($"{message}: unexpected exception type {e.InnerException?.GetType() ?? e.GetType()}");
     }
+  }
+
+  /// <summary>
+  /// Rewrites a terminalNode from a SPARQL query with a new value
+  /// </summary>
+  public static (string SparqlQuery, C context) Rewrite<C>(this string sparqlQuery, ITerminalNode terminalNode, string newTokenValue)
+    where C : ParserRuleContext
+  {
+    if (terminalNode.Payload is not CommonToken token)
+    {
+      // Should never happen
+      throw new Exception($"Payload of {nameof(terminalNode)} was not a {nameof(CommonToken)}");
+    }
+
+    var newQuery = sparqlQuery
+      .Remove(token.StartIndex, terminalNode.GetText().Length)
+      .Insert(token.StartIndex, newTokenValue);
+
+    // Make sure the newly created query is able to be parsed as the given parser context
+    var context = newQuery.ParseAs<C>();
+
+    return (newQuery, context);
   }
 }
