@@ -70,4 +70,82 @@ public static class StringExtensionsTests
       Assert.Equal("?Q", varContext.children.Single().GetText());
     }
   }
+
+  public class RewriteTests
+  {
+    [Fact]
+    public void LimitAndOffsetPresent_RewritesBoth()
+    {
+      const string query = @"PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+        PREFIX la: <https://linked.art/ns/terms/>
+
+        SELECT DISTINCT ?objectUri ?objectId ?propertyUri ?propertyId ?value
+        WHERE {
+          {
+            # ignore this:
+            # Limit 4321
+            # OFFSET 131415
+            {
+              Select ?objectUri ?objectId ?usedMaterialUri
+              WHERE {
+                ?objectUri rdf:type crm:E22_Human-Made_Object.
+                ?objectUri crm:P45_consists_of ?usedMaterialUri.
+                BIND(MD5(STR(?objectUri)) as ?objectId)
+              }
+              ORDER BY ?objectUri
+              Limit 10000
+              OFFSET 0
+            }
+
+            ?usedMaterialUri rdf:type crm:E57_Material.
+            ?usedMaterialUri crm:P1_is_identified_by ?identifier.
+            ?identifier crm:P72_has_language ?language.
+            ?identifier crm:P190_has_symbolic_content ?materialName.
+
+            BIND(MD5(STR(?usedMaterialUri)) as ?propertyId)
+            BIND(?usedMaterialUri as ?propertyUri)
+            BIND(?materialName as ?value)
+          }
+        }";
+
+      const string expectedQuery = @"PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+        PREFIX la: <https://linked.art/ns/terms/>
+
+        SELECT DISTINCT ?objectUri ?objectId ?propertyUri ?propertyId ?value
+        WHERE {
+          {
+            # ignore this:
+            # Limit 4321
+            # OFFSET 131415
+            {
+              Select ?objectUri ?objectId ?usedMaterialUri
+              WHERE {
+                ?objectUri rdf:type crm:E22_Human-Made_Object.
+                ?objectUri crm:P45_consists_of ?usedMaterialUri.
+                BIND(MD5(STR(?objectUri)) as ?objectId)
+              }
+              ORDER BY ?objectUri
+              Limit 4200
+              OFFSET 666
+            }
+
+            ?usedMaterialUri rdf:type crm:E57_Material.
+            ?usedMaterialUri crm:P1_is_identified_by ?identifier.
+            ?identifier crm:P72_has_language ?language.
+            ?identifier crm:P190_has_symbolic_content ?materialName.
+
+            BIND(MD5(STR(?usedMaterialUri)) as ?propertyId)
+            BIND(?usedMaterialUri as ?propertyUri)
+            BIND(?materialName as ?value)
+          }
+        }";
+
+      var queryUnit = query.ParseAs<QueryUnitContext>();
+
+      var (newOffsetQuery, newOffsetQueryContext) = query.Rewrite<QueryUnitContext>(queryUnit.Nodes<LimitOffsetClausesContext>().First().limitClause().INTEGER(), "4200");
+      var (newQuery, _) = newOffsetQuery.Rewrite<QueryUnitContext>(newOffsetQueryContext.Nodes<LimitOffsetClausesContext>().First().offsetClause().INTEGER(), "666");
+
+      Assert.Equal(expectedQuery, newQuery);
+    }
+  }
 }
