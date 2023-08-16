@@ -3,7 +3,7 @@ namespace BigO.SPARQLParser.Extensions;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 
-internal static class TypeExtensions
+public static class TypeExtensions
 {
   public static string MethodName(this Type type)
   {

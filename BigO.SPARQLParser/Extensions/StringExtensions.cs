@@ -7,7 +7,7 @@ using BigO.SPARQLParser.ErrorStrategies;
 using BigO.SPARQLParser.Exceptions;
 using BigO.SPARQLParser.Parser;
 
-internal static class StringExtensions
+public static class StringExtensions
 {
   /// <summary>
   /// Create a list of tokens given a `sparqlQuery` string
