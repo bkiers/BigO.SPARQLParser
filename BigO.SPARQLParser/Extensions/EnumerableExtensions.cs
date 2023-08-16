@@ -4,7 +4,7 @@ using System.Text;
 using Antlr4.Runtime;
 using BigO.SPARQLParser.Parser;
 
-internal static class EnumerableExtensions
+public static class EnumerableExtensions
 {
   /// <summary>
   /// Inserts a list of tokens before or after a certain token.
