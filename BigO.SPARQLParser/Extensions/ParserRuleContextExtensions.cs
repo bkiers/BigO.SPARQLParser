@@ -4,7 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using BigO.SPARQLParser.Listeners;
 
-internal static class ParserRuleContextExtensions
+public static class ParserRuleContextExtensions
 {
   /// <summary>
   /// Returns a list of tokens of a certain type (and optionally with a certain text) from a given context
