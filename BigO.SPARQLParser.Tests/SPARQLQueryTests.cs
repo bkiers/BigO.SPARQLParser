@@ -1,3 +1,5 @@
+using BigO.SPARQLParser.Extensions;
+
 namespace BigO.SPARQLParser.Tests;
 
 using BigO.SPARQLParser.Exceptions;
@@ -156,7 +158,7 @@ public static class SPARQLQueryTests
 
       var expression = new SPARQLQuery<ExpressionContext>(query);
       var two = expression.FindTokens(SPARQLLexer.INTEGER).Last();
-      var updatedExpression = expression.InsertQuery<ExpressionContext>(
+      var updatedExpression = expression.Insert<ExpressionContext>(
         " - 3", two, before: false);
 
       Assert.Equal("1 + 2 - 3", updatedExpression.ToQueryString());
@@ -169,7 +171,7 @@ public static class SPARQLQueryTests
 
       var expression = new SPARQLQuery<ExpressionContext>(query);
       var two = expression.FindTokens(SPARQLLexer.INTEGER).Last();
-      var updatedExpression = expression.InsertQuery<ExpressionContext>(
+      var updatedExpression = expression.Insert<ExpressionContext>(
         "4 * ", two, before: true);
 
       Assert.Equal("1 + 4 * 2", updatedExpression.ToQueryString());
@@ -184,7 +186,7 @@ public static class SPARQLQueryTests
       var two = expression.FindTokens(SPARQLLexer.INTEGER).Last();
 
       // `1 + 2 4` is not a invalid expression
-      Assert.Throws<ParseException>(() => expression.InsertQuery<ExpressionContext>(" 4", two, before: false));
+      Assert.Throws<ParseException>(() => expression.Insert<ExpressionContext>(" 4", two, before: false));
     }
   }
 
@@ -196,7 +198,7 @@ public static class SPARQLQueryTests
       const string query = "(1 + (2 * 42)) / 666";
 
       var expression = new SPARQLQuery<ExpressionContext>(query);
-      var nodes = expression.FindNodes<ExpressionContext>().ToList();
+      var nodes = expression.Nodes<ExpressionContext>().ToList();
 
       Assert.Equal(3, nodes.Count);
     }
@@ -207,9 +209,362 @@ public static class SPARQLQueryTests
       const string query = "(1 + (2 * 42)) / 666";
 
       var expression = new SPARQLQuery<ExpressionContext>(query);
-      var nodes = expression.FindNodes<QueryUnitContext>().ToList();
+      var nodes = expression.Nodes<QueryUnitContext>().ToList();
 
       Assert.Empty(nodes);
+    }
+  }
+
+  public class SourcesOfTests
+  {
+    [Fact]
+    public void NoSources_ReturnsEmptyList()
+    {
+      const string SparqlQuery = """
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   VALUES ?type { schema:Book schema:CreativeWork }
+                                 
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+      var prefixDeclarations = query.SourcesOf<PrefixDeclContext>();
+
+      Assert.Empty(prefixDeclarations);
+    }
+
+    [Fact]
+    public void SingleSource_ReturnsSingle()
+    {
+      const string SparqlQuery = """
+                                 # SKIP
+                                 #
+                                 # PREFIX schema: <http://schema.org/> SELECT (COUNT(?objectUri) AS ?total) WHERE { VALUES ?type { schema:Book schema:CreativeWork } ?objectUri rdf:type ?type. ?objectUri schema:about ?subjectUri. }
+                                 # 1412660
+                                 #
+                                 # 100 -> timeout/error
+                                 PREFIX schema: <http://schema.org/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   VALUES ?type { schema:Book schema:CreativeWork }
+                                 
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+      var prefixDeclarations = query.SourcesOf<PrefixDeclContext>();
+
+      Assert.Single(prefixDeclarations);
+      Assert.Equal("PREFIX schema: <http://schema.org/>", prefixDeclarations[0]);
+    }
+
+    [Fact]
+    public void MultipleSources_ReturnsMultiple()
+    {
+      const string SparqlQuery = """
+                                 # SKIP
+                                 #
+                                 # PREFIX schema: <http://schema.org/> SELECT (COUNT(?objectUri) AS ?total) WHERE { VALUES ?type { schema:Book schema:CreativeWork } ?objectUri rdf:type ?type. ?objectUri schema:about ?subjectUri. }
+                                 # 1412660
+                                 #
+                                 # 100 -> timeout/error
+                                 PREFIX schema: <http://schema.org/>
+                                 # Dummy comment
+                                 PREFIX q42: <http://www.example.com/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   VALUES ?type { schema:Book schema:CreativeWork }
+                                 
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+      var prefixDeclarations = query.SourcesOf<PrefixDeclContext>();
+
+      Assert.Equal(2, prefixDeclarations.Count);
+      Assert.Equal("PREFIX schema: <http://schema.org/>", prefixDeclarations[0]);
+      Assert.Equal("PREFIX q42: <http://www.example.com/>", prefixDeclarations[1]);
+    }
+
+    [Fact]
+    public void CreateCountQuery_Test()
+    {
+      const string SparqlQuery = """
+                                 # SKIP
+                                 #
+                                 # PREFIX schema: <http://schema.org/> SELECT (COUNT(?objectUri) AS ?total) WHERE { VALUES ?type { schema:Book schema:CreativeWork } ?objectUri rdf:type ?type. ?objectUri schema:about ?subjectUri. }
+                                 # 1412660
+                                 #
+                                 # 100 -> timeout/error
+                                 PREFIX schema: <http://schema.org/>
+                                 # Dummy comment
+                                 PREFIX q42: <http://www.example.com/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   VALUES ?type { schema:Book schema:CreativeWork }
+                                 
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+
+      var prefixDeclarations = query.SourcesOf<PrefixDeclContext>();
+      var inlineData = query.SourcesOf<InlineDataContext>().SingleOrDefault() ?? string.Empty;
+      var subSelectWhere = query.SourcesOf<SubSelectContext, WhereClauseContext>().SingleOrDefault() ?? string.Empty;
+
+      var countSparqlQuery = new SPARQLQuery<QueryUnitContext>($"{string.Join("\n", prefixDeclarations)}\nSELECT (COUNT(?objectUri) AS ?total)\n{subSelectWhere}");
+
+      if (!string.IsNullOrWhiteSpace(inlineData))
+      {
+        var openBrace = countSparqlQuery.Tokens().First(t => t.Type == SPARQLLexer.OBRACE);
+        countSparqlQuery = countSparqlQuery.Insert<QueryUnitContext>(inlineData, openBrace, before: false);
+      }
+
+      const string expected = """
+                     PREFIX schema: <http://schema.org/>
+                     PREFIX q42: <http://www.example.com/>
+                     SELECT (COUNT(?objectUri) AS ?total)
+                     WHERE {VALUES ?type { schema:Book schema:CreativeWork }
+                           ?objectUri rdf:type ?type.
+                           ?objectUri schema:about ?subjectUri.
+                         }
+                     """;
+
+      Assert.Equal(expected, countSparqlQuery.ToQueryString());
+    }
+
+    [Fact]
+    public void CreateCountQuery_NoInlineDataTest()
+    {
+      const string SparqlQuery = """
+                                 PREFIX schema: <http://schema.org/>
+                                 PREFIX q42: <http://www.example.com/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+
+      var prefixDeclarations = query.SourcesOf<PrefixDeclContext>();
+      var inlineData = query.SourcesOf<InlineDataContext>().SingleOrDefault() ?? string.Empty;
+      var subSelectWhere = query.SourcesOf<SubSelectContext, WhereClauseContext>().SingleOrDefault() ?? string.Empty;
+
+      var countSparqlQuery = new SPARQLQuery<QueryUnitContext>($"{string.Join("\n", prefixDeclarations)}\nSELECT (COUNT(?objectUri) AS ?total)\n{subSelectWhere}");
+
+      if (!string.IsNullOrWhiteSpace(inlineData))
+      {
+        var openBrace = countSparqlQuery.Tokens().First(t => t.Type == SPARQLLexer.OBRACE);
+        countSparqlQuery = countSparqlQuery.Insert<QueryUnitContext>(inlineData, openBrace, before: false);
+      }
+
+      const string expected = """
+                     PREFIX schema: <http://schema.org/>
+                     PREFIX q42: <http://www.example.com/>
+                     SELECT (COUNT(?objectUri) AS ?total)
+                     WHERE {
+                           ?objectUri rdf:type ?type.
+                           ?objectUri schema:about ?subjectUri.
+                         }
+                     """;
+
+      Assert.Equal(expected, countSparqlQuery.ToQueryString());
+    }
+
+    [Fact]
+    public void CreateCountQuery_MissingParentNodeThrowsException()
+    {
+      const string SparqlQuery = """
+                                 PREFIX schema: <http://schema.org/>
+                                 PREFIX q42: <http://www.example.com/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+
+      Assert.Throws<ArgumentException>(() => query.SourcesOf<SubSelectContext, WhereClauseContext>().SingleOrDefault());
+    }
+
+    [Fact]
+    public void CreateCountQuery_MissingChildNodeThrowsException()
+    {
+      const string SparqlQuery = """
+                                 PREFIX schema: <http://schema.org/>
+                                 PREFIX q42: <http://www.example.com/>
+
+                                 CONSTRUCT {
+                                   ?objectUri rdf:type q42:LibraryObject.
+                                   ?objectUri q42:isAboutSubject ?subjectUri.
+                                   ?objectUri q42:nodeId ?objectId.
+                                   ?subjectUri rdf:type q42:Subject.
+                                   ?subjectUri q42:nlValue ?subjectValue.
+                                   ?subjectUri q42:enValue ?subjectValue.
+                                   ?subjectUri q42:nodeId ?subjectId.
+                                 } WHERE {
+                                   {
+                                     SELECT ?objectUri ?subjectUri
+                                     WHERE {
+                                       ?objectUri rdf:type ?type.
+                                       ?objectUri schema:about ?subjectUri.
+                                     }
+                                     ORDER BY ?objectUri
+                                     LIMIT 100
+                                     OFFSET 0
+                                   }
+                                 
+                                   ?subjectUri rdf:type schema:DefinedTerm.
+                                   ?subjectUri schema:name ?subjectValue.
+                                   FILTER(isIRI(?subjectUri))
+                                 
+                                   BIND(MD5(STR(?objectUri)) as ?objectId)
+                                   BIND(MD5(STR(?subjectUri)) as ?subjectId)
+                                 }
+                                 """;
+
+      var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
+
+      Assert.Throws<ArgumentException>(() => query.SourcesOf<SubSelectContext, FilterContext>().FirstOrDefault());
     }
   }
 }

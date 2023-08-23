@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace BigO.SPARQLParser;
 
 using System.Collections.ObjectModel;
@@ -61,10 +63,10 @@ public class SPARQLQuery<C>
   /// Inserts a given node `N` query in this current node `C` query-object and returns the result as a new
   /// `R` query-object
   /// </summary>
-  public SPARQLQuery<R> InsertQuery<R>(string query, IToken beforeToken, bool before)
+  public SPARQLQuery<R> Insert<R>(string query, IToken beforeOrAfterToken, bool before)
     where R : ParserRuleContext // The type of the context to be returned
   {
-    var newTokens = this.tokens.InsertTokens(query.Tokenize(), beforeToken, before);
+    var newTokens = this.tokens.InsertTokens(query.Tokenize(), beforeOrAfterToken, before);
     var completeQuery = newTokens.ToQueryString(skipComments: false);
 
     // This will throw an exception if the newly formed tokens is not a valid `R` parser context
@@ -74,11 +76,73 @@ public class SPARQLQuery<C>
   /// <summary>
   /// Return all parse tree nodes of this parser rule context
   /// </summary>
-  public IEnumerable<N> FindNodes<N>()
+  public IEnumerable<N> Nodes<N>()
     where N : ParserRuleContext => this.Context.Nodes<N>();
 
   /// <summary>
   /// Return this parser rule context
   /// </summary>
   public string ToQueryString(bool skipComments = true) => this.tokens.ToQueryString(skipComments);
+
+  /// <summary>
+  /// TODO
+  /// </summary>
+  public List<string> SourcesOf<N>()
+    where N : ParserRuleContext
+  {
+    var nodes = this.Nodes<N>();
+    var nodesArray = nodes as N[] ?? nodes.ToArray();
+    var sources = new List<string>();
+
+    foreach (var node in nodesArray)
+    {
+      var builder = new StringBuilder();
+
+      for (var index = node.Start.TokenIndex; index <= node.Stop.TokenIndex; index++)
+      {
+        builder.Append(this.tokens[index].Text);
+      }
+
+      sources.Add(builder.ToString());
+    }
+
+    return sources;
+  }
+
+  public List<string> SourcesOf<P, N>()
+    where P : ParserRuleContext
+    where N : ParserRuleContext
+  {
+    var parentNodes = this.Nodes<P>();
+    var parentNodesArray = parentNodes as P[] ?? parentNodes.ToArray();
+
+    if (!parentNodesArray.Any())
+    {
+      throw new ArgumentException($"Could not find a {typeof(P).Name} node");
+    }
+
+    var childNodes = parentNodesArray.Where(p => p.Nodes<N>().Any()).Select(p => p.Nodes<N>()).FirstOrDefault();
+    var nodesArray = childNodes as N[] ?? childNodes?.ToArray();
+
+    if (nodesArray?.Any() != true)
+    {
+      throw new ArgumentException($"Could not find a child {typeof(N).Name} node under parent {typeof(P).Name} node");
+    }
+
+    var sources = new List<string>();
+
+    foreach (var node in nodesArray)
+    {
+      var builder = new StringBuilder();
+
+      for (var index = node.Start.TokenIndex; index <= node.Stop.TokenIndex; index++)
+      {
+        builder.Append(this.tokens[index].Text);
+      }
+
+      sources.Add(builder.ToString());
+    }
+
+    return sources;
+  }
 }
