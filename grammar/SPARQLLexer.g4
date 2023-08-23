@@ -1,6 +1,6 @@
 lexer grammar SPARQLLexer;
 
-SPACES : WS+ -> channel(HIDDEN);
+SPACE : WS -> channel(HIDDEN);
 COMMENT : '#' ~[\r\n]* -> channel(HIDDEN);
 
 TRUE : T R U E;

@@ -26,11 +26,11 @@ public static class StringExtensionsTests
 
       Assert.Equal(8, tokens.Count);
       Assert.Equal(SPARQLLexer.INTEGER, tokens[0].Type);
-      Assert.Equal(SPARQLLexer.SPACES, tokens[1].Type);
+      Assert.Equal(SPARQLLexer.SPACE, tokens[1].Type);
       Assert.Equal(SPARQLLexer.INTEGER, tokens[2].Type);
-      Assert.Equal(SPARQLLexer.SPACES, tokens[3].Type);
+      Assert.Equal(SPARQLLexer.SPACE, tokens[3].Type);
       Assert.Equal(SPARQLLexer.INTEGER, tokens[4].Type);
-      Assert.Equal(SPARQLLexer.SPACES, tokens[5].Type);
+      Assert.Equal(SPARQLLexer.SPACE, tokens[5].Type);
       Assert.Equal(SPARQLLexer.INTEGER, tokens[6].Type);
       Assert.Equal(SPARQLLexer.Eof, tokens[7].Type);
     }
