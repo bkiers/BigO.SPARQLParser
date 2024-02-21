@@ -31,7 +31,7 @@ public static class EnumerableExtensions
   }
 
   /// <summary>
-  /// Converts a given list of tokens back into the GRAPHQL source, optionally including the comments.
+  /// Converts a given list of tokens back into the SPARQL source, optionally including the comments.
   /// </summary>
   public static string ToQueryString<T>(this IEnumerable<T> tokens, bool skipComments = true)
     where T : IToken

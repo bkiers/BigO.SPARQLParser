@@ -74,6 +74,55 @@ public class SPARQLQuery<C>
   }
 
   /// <summary>
+  /// Replaces a `contextToRemove` with a `contextToInsert`. Note that both these contexts must already be
+  /// parts of this SPARQLQuery instance, otherwise the token-indexes get messed up. An exception will be
+  /// thrown if this is not the case.
+  /// </summary>
+  public SPARQLQuery<C> Replace<N, P>(N contextToRemove, P contextToInsert)
+    where N : ParserRuleContext
+    where P : ParserRuleContext
+  {
+    if (contextToRemove == contextToInsert)
+    {
+      throw new Exception($"{nameof(contextToRemove)} and {nameof(contextToInsert)} are the same");
+    }
+
+    if (this.Nodes<N>().All(n => n != contextToRemove))
+    {
+      throw new Exception($"{nameof(contextToRemove)} must be an existing child of this {this.GetType().Name}");
+    }
+
+    if (this.Nodes<P>().All(p => p != contextToInsert))
+    {
+      throw new Exception($"{nameof(contextToInsert)} must be an existing child of this {this.GetType().Name}");
+    }
+
+    var builder = new StringBuilder();
+
+    for (var index = 0; index < contextToRemove.Start.TokenIndex; index++)
+    {
+      builder.Append(this.tokens[index].Text);
+    }
+
+    for (var index = contextToInsert.Start.TokenIndex; index <= contextToInsert.Stop.TokenIndex; index++)
+    {
+      builder.Append(this.tokens[index].Text);
+    }
+
+    for (var index = contextToRemove.Stop.TokenIndex + 1; index < this.tokens.Count; index++)
+    {
+      if (this.tokens[index].Type == Lexer.Eof)
+      {
+        break;
+      }
+
+      builder.Append(this.tokens[index].Text);
+    }
+
+    return new SPARQLQuery<C>(builder.ToString());
+  }
+
+  /// <summary>
   /// Return all parse tree nodes of this parser rule context
   /// </summary>
   public IEnumerable<N> Nodes<N>()

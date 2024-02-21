@@ -1,3 +1,5 @@
+using Antlr4.Runtime;
+
 namespace BigO.SPARQLParser.Tests.Extensions;
 
 using BigO.SPARQLParser.Extensions;
@@ -113,6 +115,115 @@ public static class ParserRuleContextExtensionsTests
       Assert.Equal("?ageInDays/365.2425", nodes[1].GetText());
       Assert.Equal("FLOOR(?ageInYears)", nodes[2].GetText());
       Assert.Equal("?ageInYears", nodes[3].GetText());
+    }
+  }
+
+  public class ContainsContextTests
+  {
+    [Fact]
+    public void ContainsContext_ReturnsTrue()
+    {
+      const string q1 = """
+                        PREFIX     dc: <http://purl.org/dc/elements/1.1/>
+                        SELECT     ?title
+                        WHERE      { <http://example.org/book/book1> dc:title ?title }
+                        """;
+
+      const string q2 = """
+                        SELECT ?title
+                        WHERE  { ?a ?b ?c }
+                        """;
+
+      var selectContext1 = new SPARQLQuery<QueryUnitContext>(q1).Nodes<SelectClauseContext>().First();
+      var selectContext2 = new SPARQLQuery<QueryUnitContext>(q2).Nodes<SelectClauseContext>().First();
+
+      Assert.True(selectContext1.ContainsContext(selectContext2));
+    }
+
+    [Fact]
+    public void NotContainsContext_ReturnsFalse()
+    {
+      const string q1 = """
+                        PREFIX     dc: <http://purl.org/dc/elements/1.1/>
+                        SELECT     ?mu
+                        WHERE      { <http://example.org/book/book1> dc:title ?title }
+                        """;
+
+      const string q2 = """
+                        SELECT ?title
+                        WHERE  { ?a ?b ?c }
+                        """;
+
+      var selectContext1 = new SPARQLQuery<QueryUnitContext>(q1).Nodes<SelectClauseContext>().First();
+      var selectContext2 = new SPARQLQuery<QueryUnitContext>(q2).Nodes<SelectClauseContext>().First();
+
+      Assert.False(selectContext1.ContainsContext(selectContext2));
+    }
+  }
+
+  public class IsEqualToTests
+  {
+    [Fact]
+    public void SameContexts_ReturnsTrue()
+    {
+      const string q1 = """
+                        PREFIX     dc: <http://purl.org/dc/elements/1.1/>
+                        SELECT     ?title
+                        WHERE      { <http://example.org/book/book1> dc:title ?title }
+                        """;
+
+      const string q2 = """
+                        SELECT     ?title
+                        WHERE      { ?a ?b ?c }
+                        """;
+
+      var selectContext1 = new SPARQLQuery<QueryUnitContext>(q1).Nodes<SelectClauseContext>().First();
+      var selectContext2 = new SPARQLQuery<QueryUnitContext>(q2).Nodes<SelectClauseContext>().First();
+
+      Assert.True(selectContext1.IsEqualTo(selectContext2));
+    }
+
+    [Fact]
+    public void NullContexts_ReturnsTrue()
+    {
+      ParserRuleContext? selectContext1 = null;
+      ParserRuleContext? selectContext2 = null;
+
+      Assert.True(selectContext1.IsEqualTo(selectContext2));
+    }
+
+    [Fact]
+    public void SameInstanceContexts_ReturnsTrue()
+    {
+      const string q = """
+                       PREFIX     dc: <http://purl.org/dc/elements/1.1/>
+                       SELECT     ?title
+                       WHERE      { <http://example.org/book/book1> dc:title ?title }
+                       """;
+
+      var selectContext = new SPARQLQuery<QueryUnitContext>(q).Nodes<SelectClauseContext>().First();
+
+      Assert.True(selectContext.IsEqualTo(selectContext));
+    }
+
+    [Fact]
+    public void NotSameContexts_ReturnsFalse()
+    {
+      const string q1 = """
+                        PREFIX     dc: <http://purl.org/dc/elements/1.1/>
+                        SELECT     ?title
+                        WHERE      { <http://example.org/book/book1> dc:title ?title }
+                        """;
+
+      const string q2 = """
+                        SELECT     ?titleX
+                        WHERE      { ?a ?b ?c }
+                        """;
+
+      var selectContext1 = new SPARQLQuery<QueryUnitContext>(q1).Nodes<SelectClauseContext>().First();
+      var selectContext2 = new SPARQLQuery<QueryUnitContext>(q2).Nodes<SelectClauseContext>().First();
+
+      Assert.False(selectContext1.IsEqualTo(selectContext2));
     }
   }
 }

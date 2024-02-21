@@ -1,5 +1,3 @@
-using BigO.SPARQLParser.Extensions;
-
 namespace BigO.SPARQLParser.Tests;
 
 using BigO.SPARQLParser.Exceptions;
@@ -27,7 +25,7 @@ public static class SPARQLQueryTests
     [Fact]
     public void TooManyTokens_ThrowsParseException()
     {
-      const string queryString = @"1 + 2 .";
+      const string queryString = "1 + 2 .";
 
       Assert.Throws<ParseException>(() => new SPARQLQuery<ExpressionContext>(queryString));
     }
@@ -565,6 +563,45 @@ public static class SPARQLQueryTests
       var query = new SPARQLQuery<QueryUnitContext>(SparqlQuery);
 
       Assert.Throws<ArgumentException>(() => query.SourcesOf<SubSelectContext, FilterContext>().FirstOrDefault());
+    }
+  }
+
+  public class ReplaceTests
+  {
+    [Fact]
+    public void SameContexts_ThrowsException()
+    {
+      const string queryString = "SELECT ?name WHERE { ?person foaf:name ?name . }";
+
+      var query = new SPARQLQuery<QueryUnitContext>(queryString);
+      var contextToRemove = query.Nodes<GroupGraphPatternSubContext>().Single();
+
+      Assert.Throws<Exception>(() => query.Replace(contextToRemove, contextToRemove));
+    }
+
+    [Fact]
+    public void ContextNotPartOfQuery_ThrowsException()
+    {
+      const string queryString = "SELECT ?name WHERE { ?person foaf:name ?name . }";
+
+      var query = new SPARQLQuery<QueryUnitContext>(queryString);
+      var contextToRemove = query.Nodes<WhereClauseContext>().Single();
+      var contextToInsert = new SPARQLQuery<WhereClauseContext>("WHERE { ?p foaf:name ?n . }").Context;
+
+      Assert.Throws<Exception>(() => query.Replace(contextToRemove, contextToInsert));
+    }
+
+    [Fact]
+    public void ContextsPartOfQuery_ReplacesContext()
+    {
+      const string queryString = "SELECT ?name WHERE { ?person foaf:name ?name . }";
+
+      var query = new SPARQLQuery<QueryUnitContext>(queryString);
+      var varContexts = query.Nodes<VarContext>().ToList();
+      var rewrittenQuery = query.Replace(varContexts[0], varContexts[1]);
+
+      Assert.Equal("SELECT ?name WHERE { ?person foaf:name ?name . }", query.ToQueryString());
+      Assert.Equal("SELECT ?person WHERE { ?person foaf:name ?name . }", rewrittenQuery.ToQueryString());
     }
   }
 }
