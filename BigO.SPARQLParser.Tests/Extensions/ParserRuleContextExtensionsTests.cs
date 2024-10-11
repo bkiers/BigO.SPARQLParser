@@ -1,7 +1,6 @@
-using Antlr4.Runtime;
-
 namespace BigO.SPARQLParser.Tests.Extensions;
 
+using Antlr4.Runtime;
 using BigO.SPARQLParser.Extensions;
 using BigO.SPARQLParser.Parser;
 using Xunit;

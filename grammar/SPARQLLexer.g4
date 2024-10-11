@@ -218,8 +218,12 @@ UNEXPECTED_CHAR : . ;
 /// [155]    EXPONENT : [eE] [+-]? [0-9]+
 fragment EXPONENT : [eE] [+-]? [0-9]+;
 
+// Although the spec allow only the escape sequences \t, \b, \n, \r, \f, \" and \', in the wild it
+// happens that more characters are escaped: https://github.com/bkiers/BigO.SPARQLParser/issues/10
+// So we'll be more forgiving by accepting any escaped non-linebreak
+//
 /// [160]    ECHAR : '\' [tbnrf\"']
-fragment ECHAR : '\\' [tbnrf"'];
+fragment ECHAR : '\\' ~[\r\n];
 
 /// [162]    WS : #x20 | #x9 | #xD | #xA
 fragment WS : [\u0020\u0009\u000D\u000A];
